@@ -1,19 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <title>Колесо фортуны</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="container">
-    <img src="logo.png" class="logo" alt="Logo" />
-    <canvas id="wheelCanvas" width="300" height="300"></canvas>
-    <button id="spinButton">🎯 Крутить</button>
-    <p id="timer">До следующего вращения: ...</p>
-  </div>
+<body style="background-color: #30013C; color: white; text-align: center;">
+  <img src="images/logo.png" alt="Логотип" style="margin-top: 20px; width: 120px;">
+  <canvas id="wheelCanvas" width="400" height="400"></canvas>
+  <p id="countdown">Следующее вращение через: 7д 00:00:00</p>
   <script src="script.js"></script>
 </body>
 </html>
