@@ -80,12 +80,12 @@
       cursor: not-allowed;
     }
 
-    #result {
-      margin-top: 20px;
+    #win-result, #cooldown-timer {
+      margin-top: 10px;
       font-size: 20px;
-      min-height: 24px;
       text-align: center;
       padding: 0 10px;
+      min-height: 24px;
     }
   </style>
 </head>
@@ -96,7 +96,8 @@
     <canvas id="wheel"></canvas>
   </div>
   <button id="spin-btn">Крутить!</button>
-  <div id="result"></div>
+  <div id="win-result"></div>
+  <div id="cooldown-timer"></div>
 
   <audio id="spin-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"></audio>
   <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
@@ -105,7 +106,8 @@
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const spinBtn = document.getElementById("spin-btn");
-    const resultDisplay = document.getElementById("result");
+    const winResult = document.getElementById("win-result");
+    const cooldownTimer = document.getElementById("cooldown-timer");
     const spinSound = document.getElementById("spin-sound");
     const winSound = document.getElementById("win-sound");
 
@@ -144,21 +146,23 @@
       const lastSpin = getLastSpin();
       if (!lastSpin) {
         spinBtn.disabled = false;
-        resultDisplay.textContent = "";
+        cooldownTimer.textContent = "";
         return;
       }
+
       const now = Date.now();
       const diff = cooldownTime - (now - lastSpin);
+
       if (diff <= 0) {
         spinBtn.disabled = false;
-        resultDisplay.textContent = "";
+        cooldownTimer.textContent = "";
       } else {
         spinBtn.disabled = true;
         const seconds = Math.floor(diff / 1000) % 60;
         const minutes = Math.floor(diff / 60000) % 60;
         const hours = Math.floor(diff / 3600000) % 24;
         const days = Math.floor(diff / 86400000);
-        resultDisplay.textContent = `Следующий спин через: ${days}д ${hours}ч ${minutes}м ${seconds}с`;
+        cooldownTimer.textContent = `Следующий спин через: ${days}д ${hours}ч ${minutes}м ${seconds}с`;
       }
     }
 
@@ -211,10 +215,9 @@
       if (isSpinning || !canSpin()) return;
       isSpinning = true;
       spinBtn.disabled = true;
-      resultDisplay.textContent = "";
-      spinVelocity = 0.1 + Math.random() * 0.1;
       spinSound.currentTime = 0;
       spinSound.play();
+      spinVelocity = 0.1 + Math.random() * 0.1;
       animateSpin();
     }
 
@@ -238,8 +241,8 @@
       const index = (numSectors - Math.floor(pointerAngle / anglePerSector) - 1) % numSectors;
       const prize = prizes[index];
 
-      resultDisplay.textContent = `Вы выиграли: ${prize}`;
-      resultDisplay.style.color = colors[index % colors.length];
+      winResult.textContent = `Вы выиграли: ${prize}`;
+      winResult.style.color = colors[index % colors.length];
 
       winSound.currentTime = 0;
       winSound.play();
