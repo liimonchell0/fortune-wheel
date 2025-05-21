@@ -240,10 +240,10 @@
 const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
 const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
 
-      const prize = prizes[index];
+const prize = prizes[selectedIndex];
+winResult.textContent = `Вы выиграли: ${prize}`;
+winResult.style.color = colors[selectedIndex % colors.length];
 
-      winResult.textContent = `Вы выиграли: ${prize}`;
-      winResult.style.color = colors[index % colors.length];
 
       winSound.currentTime = 0;
       winSound.play();
