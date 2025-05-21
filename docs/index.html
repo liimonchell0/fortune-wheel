@@ -126,7 +126,7 @@
     let spinVelocity = 0;
     const spinDeceleration = 0.99;
 
-    const cooldownTime = 7 * 24 * 60 * 60 * 1000; // 7 дней
+    const cooldownTime = /*7 * 24 * 60 */ 60 * 1000; // 7 дней
 
     function getLastSpin() {
       return localStorage.getItem("lastSpinTime");
