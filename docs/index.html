@@ -1,28 +1,61 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Колесо фортуны</title>
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
       font-family: Arial, sans-serif;
       background-color: #30013C;
       color: white;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
     }
+
+    #logo {
+      max-width: 60%;
+      height: auto;
+      margin: 20px auto 10px;
+    }
+
     #wheel-container {
       position: relative;
-      margin: 0 auto;
-      width: 400px;
+      width: 90vw;
+      max-width: 400px;
+      aspect-ratio: 1 / 1;
     }
+
     #wheel {
-      display: block;
-      margin: 0 auto;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     }
+
+    .pointer {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 40px solid white;
+      filter: drop-shadow(0 0 10px black);
+      z-index: 10;
+    }
+
     #spin-btn {
       margin-top: 20px;
       padding: 12px 30px;
@@ -33,232 +66,191 @@
       font-size: 18px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
       transition: all 0.3s;
     }
+
     #spin-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 7px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
     }
+
     #spin-btn:disabled {
       background: #ccc;
       cursor: not-allowed;
     }
+
     #result {
       margin-top: 20px;
-      font-size: 24px;
-      min-height: 36px;
+      font-size: 20px;
+      min-height: 24px;
+      text-align: center;
+      padding: 0 10px;
     }
-.pointer {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-top: 40px solid white;
-  z-index: 10;
-
-  /* Обводка через тень */
-  filter: drop-shadow(0 0 10px black);
-}
-
-
-
-
-
   </style>
 </head>
 <body>
-  <div style="text-align:center; margin-bottom: 20px;">
-  <img src="logo.png" alt="Логотип" style="max-width: 200px; height: auto;">
-</div>
+  <img src="logo.png" id="logo" alt="Логотип" />
   <div id="wheel-container">
     <div class="pointer"></div>
-    <canvas id="wheel" width="400" height="400"></canvas>
+    <canvas id="wheel"></canvas>
   </div>
   <button id="spin-btn">Крутить!</button>
   <div id="result"></div>
+
   <audio id="spin-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"></audio>
   <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
 
   <script>
-  const canvas = document.getElementById("wheel");
-  const ctx = canvas.getContext("2d");
-  const spinBtn = document.getElementById("spin-btn");
-  const resultDisplay = document.getElementById("result");
-  const spinSound = document.getElementById("spin-sound");
-  const winSound = document.getElementById("win-sound");
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spin-btn");
+    const resultDisplay = document.getElementById("result");
+    const spinSound = document.getElementById("spin-sound");
+    const winSound = document.getElementById("win-sound");
 
-  const width = canvas.width;
-  const height = canvas.height;
-  const center = width / 2;
-  const radius = center - 10;
+    const prizes = [
+      "100 ПТС", "235", "20 ПТС", "5 ПТС",
+      "118", "30 ПТС", "15 ПТС", "7",
+      "50 ПТС", "180", "5 ПТС", "11",
+      "20 ПТС", "3", "10 ПТС", "9"
+    ];
+    const colors = ["#C6001E", "#FDFE05"];
+    const numSectors = prizes.length;
+    const anglePerSector = (2 * Math.PI) / numSectors;
 
-  const prizes = [
-    "100 ПТС", "235", "20 ПТС", "5 ПТС",
-    "118", "30 ПТС", "15 ПТС", "7",
-    "50 ПТС", "180", "5 ПТС", "11",
-    "20 ПТС", "3", "10 ПТС", "9"
-  ];
+    let rotation = 0;
+    let isSpinning = false;
+    let spinVelocity = 0;
+    const spinDeceleration = 0.99;
 
-  const colors = [
-    "#C6001E", "#FDFE05"
-  ];
+    const cooldownTime = 7 * 24 * 60 * 60 * 1000; // 7 дней
 
-  const numSectors = prizes.length;
-  const anglePerSector = (2 * Math.PI) / numSectors;
-  let rotation = 0;
-  let isSpinning = false;
-  let spinVelocity = 0;
-  const spinDeceleration = 0.99;
-
-  // Таймер для ограничения прокрутки
-  const cooldownTime = 7 * 24 * 60 * 60 * 1000; // 7 дней в миллисекундах
-
-  function getLastSpin() {
-    return localStorage.getItem("lastSpinTime");
-  }
-
-  function setLastSpin(time) {
-    localStorage.setItem("lastSpinTime", time);
-  }
-
-  function canSpin() {
-    const lastSpin = getLastSpin();
-    if (!lastSpin) return true;
-    const now = Date.now();
-    return now - lastSpin >= cooldownTime;
-  }
-
-  function updateCooldown() {
-    const lastSpin = getLastSpin();
-    if (!lastSpin) {
-      spinBtn.disabled = false;
-      resultDisplay.textContent = "";
-      return;
+    function getLastSpin() {
+      return localStorage.getItem("lastSpinTime");
     }
-    const now = Date.now();
-    const diff = cooldownTime - (now - lastSpin);
 
-    if (diff <= 0) {
-      spinBtn.disabled = false;
-      resultDisplay.textContent = "";
-    } else {
-      spinBtn.disabled = true;
-      const seconds = Math.floor(diff / 1000) % 60;
-      const minutes = Math.floor(diff / (1000 * 60)) % 60;
-      const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-      resultDisplay.textContent = `Следующий спин через: ${days}д ${hours}ч ${minutes}м ${seconds}с`;
+    function setLastSpin(time) {
+      localStorage.setItem("lastSpinTime", time);
     }
-  }
 
-  function drawWheel() {
-    ctx.clearRect(0, 0, width, height);
+    function canSpin() {
+      const lastSpin = getLastSpin();
+      if (!lastSpin) return true;
+      return Date.now() - lastSpin >= cooldownTime;
+    }
 
-    for (let i = 0; i < numSectors; i++) {
-      const angle = rotation + i * anglePerSector;
+    function updateCooldown() {
+      const lastSpin = getLastSpin();
+      if (!lastSpin) {
+        spinBtn.disabled = false;
+        resultDisplay.textContent = "";
+        return;
+      }
+      const now = Date.now();
+      const diff = cooldownTime - (now - lastSpin);
+      if (diff <= 0) {
+        spinBtn.disabled = false;
+        resultDisplay.textContent = "";
+      } else {
+        spinBtn.disabled = true;
+        const seconds = Math.floor(diff / 1000) % 60;
+        const minutes = Math.floor(diff / 60000) % 60;
+        const hours = Math.floor(diff / 3600000) % 24;
+        const days = Math.floor(diff / 86400000);
+        resultDisplay.textContent = `Следующий спин через: ${days}д ${hours}ч ${minutes}м ${seconds}с`;
+      }
+    }
+
+    function resizeCanvas() {
+      const container = document.getElementById("wheel-container");
+      const size = container.offsetWidth;
+      canvas.width = size;
+      canvas.height = size;
+      drawWheel();
+    }
+
+    function drawWheel() {
+      const size = canvas.width;
+      const center = size / 2;
+      const radius = center - 10;
+
+      ctx.clearRect(0, 0, size, size);
+
+      for (let i = 0; i < numSectors; i++) {
+        const angle = rotation + i * anglePerSector;
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, radius, angle, angle + anglePerSector);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(angle + anglePerSector / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 12px Arial";
+        ctx.fillText(prizes[i], radius - 15, 5);
+        ctx.restore();
+      }
+
       ctx.beginPath();
-      ctx.moveTo(center, center);
-      ctx.arc(center, center, radius, angle, angle + anglePerSector);
-
-      // Раскрашиваем сектора поочередно двумя цветами
-      ctx.fillStyle = colors[i % colors.length];
+      ctx.arc(center, center, 20, 0, 2 * Math.PI);
+      ctx.fillStyle = "#fff";
       ctx.fill();
-      ctx.strokeStyle = "#fff";
+      ctx.strokeStyle = "#000";
       ctx.lineWidth = 2;
       ctx.stroke();
-
-      // Текст приза (без номеров секторов для чистоты)
-      ctx.save();
-      ctx.translate(center, center);
-      ctx.rotate(angle + anglePerSector / 2);
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#000";
-      ctx.font = "bold 14px Arial";
-      ctx.fillText(prizes[i], radius - 15, 5);
-      ctx.restore();
     }
 
-    // Центральный круг
-    ctx.beginPath();
-    ctx.arc(center, center, 20, 0, 2 * Math.PI);
-    ctx.fillStyle = "#fff";
-    ctx.fill();
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  }
-
-  function spinWheel() {
-    if (isSpinning) return;
-    if (!canSpin()) return;
-
-    isSpinning = true;
-    spinBtn.disabled = true;
-    resultDisplay.textContent = "";
-    spinVelocity = 0.1 + Math.random() * 0.1;
-    spinSound.currentTime = 0;
-    spinSound.play();
-
-    animateSpin();
-  }
-
-  function animateSpin() {
-    rotation += spinVelocity;
-    spinVelocity *= spinDeceleration;
-
-    drawWheel();
-
-    if (spinVelocity < 0.001) {
-      finishSpin();
-      return;
+    function spinWheel() {
+      if (isSpinning || !canSpin()) return;
+      isSpinning = true;
+      spinBtn.disabled = true;
+      resultDisplay.textContent = "";
+      spinVelocity = 0.1 + Math.random() * 0.1;
+      spinSound.currentTime = 0;
+      spinSound.play();
+      animateSpin();
     }
 
-    requestAnimationFrame(animateSpin);
-  }
+    function animateSpin() {
+      rotation += spinVelocity;
+      spinVelocity *= spinDeceleration;
+      drawWheel();
+      if (spinVelocity < 0.001) {
+        finishSpin();
+        return;
+      }
+      requestAnimationFrame(animateSpin);
+    }
 
-  function finishSpin() {
-    isSpinning = false;
-    spinBtn.disabled = false;
+    function finishSpin() {
+      isSpinning = false;
+      setLastSpin(Date.now());
 
-    // Сохраняем время прокрутки
-    setLastSpin(Date.now());
+      rotation = rotation % (2 * Math.PI);
+      const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
+      const index = (numSectors - Math.floor(pointerAngle / anglePerSector) - 1) % numSectors;
+      const prize = prizes[index];
 
-    rotation = rotation % (2 * Math.PI);
-    if (rotation < 0) rotation += 2 * Math.PI;
+      resultDisplay.textContent = `Вы выиграли: ${prize}`;
+      resultDisplay.style.color = colors[index % colors.length];
 
-    const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
-    const index = (numSectors - Math.floor(pointerAngle / anglePerSector) - 1) % numSectors;
-    const prize = prizes[index];
+      winSound.currentTime = 0;
+      winSound.play();
+    }
 
-    resultDisplay.textContent = `Вы выиграли: ${prize}! (Сектор ${index})`;
-    resultDisplay.style.color = colors[index % colors.length];
+    spinBtn.addEventListener("click", spinWheel);
+    window.addEventListener("resize", resizeCanvas);
 
-    console.log([
-      `Угол поворота: ${(rotation * 180 / Math.PI).toFixed(1)}°`,
-      `Угол указателя: ${(pointerAngle * 180 / Math.PI).toFixed(1)}°`,
-      `Индекс сектора: ${index}`,
-      `Приз: ${prize}`
-    ].join(" | "));
-
-    winSound.currentTime = 0;
-    winSound.play();
-  }
-
-  spinBtn.addEventListener("click", spinWheel);
-
-  // Запускаем таймер обновления каждую секунду
-  setInterval(updateCooldown, 1000);
-  // Проверяем при загрузке страницы
-  updateCooldown();
-
-  drawWheel();
-</script>
-
+    setInterval(updateCooldown, 1000);
+    updateCooldown();
+    resizeCanvas();
+  </script>
 </body>
 </html>
