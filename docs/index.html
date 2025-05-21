@@ -112,10 +112,10 @@
     const winSound = document.getElementById("win-sound");
 
     const prizes = [
-      "100 ПТС", "235", "20 ПТС", "5 ПТС",
-      "118", "30 ПТС", "15 ПТС", "7",
-      "50 ПТС", "180", "5 ПТС", "11",
-      "20 ПТС", "3", "10 ПТС", "9"
+    "100 ПТС", "180 птс", "15 ПТС", "10 ПТС",
+      "20 птс", "30 ПТС", "35 ПТС", "7 птс",
+      "100 ПТС", "180 птс", "15 ПТС", "10 птс",
+      "20 ПТС", "30 птс", "35 ПТС", "7 птс"
     ];
     const colors = ["#C6001E", "#FDFE05"];
     const numSectors = prizes.length;
@@ -237,8 +237,9 @@
       setLastSpin(Date.now());
 
       rotation = rotation % (2 * Math.PI);
-      const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
-      const index = (numSectors - Math.floor(pointerAngle / anglePerSector) - 1) % numSectors;
+const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
+const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
+
       const prize = prizes[index];
 
       winResult.textContent = `Вы выиграли: ${prize}`;
