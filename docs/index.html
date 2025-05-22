@@ -8,10 +8,7 @@
   <title>Колесо фортуны</title>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
+      margin: 0; padding: 0; height: 100%; width: 100%;
       font-family: Arial, sans-serif;
       background-color: #30013C;
       color: white;
@@ -21,41 +18,29 @@
       align-items: center;
       justify-content: start;
     }
-
-    #logo {
-      max-width: 60%;
-      height: auto;
-      margin: 20px auto 10px;
-    }
-
+    #logo { max-width: 60%; height: auto; margin: 20px auto 10px; }
     #wheel-container {
       position: relative;
       width: 90vw;
       max-width: 400px;
       aspect-ratio: 1 / 1;
     }
-
     #wheel {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      width: 100%; height: 100%; border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
-
     .pointer {
       position: absolute;
       top: -20px;
       left: 50%;
       transform: translateX(-50%);
-      width: 0;
-      height: 0;
+      width: 0; height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
       border-top: 40px solid white;
       filter: drop-shadow(0 0 10px black);
       z-index: 10;
     }
-
     #spin-btn {
       margin-top: 20px;
       padding: 12px 30px;
@@ -66,20 +51,17 @@
       font-size: 18px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
       transition: all 0.3s;
     }
-
     #spin-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 7px 20px rgba(0,0,0,0.4);
     }
-
     #spin-btn:disabled {
       background: #ccc;
       cursor: not-allowed;
     }
-
     #win-result, #cooldown-timer {
       margin-top: 10px;
       font-size: 20px;
@@ -112,7 +94,7 @@
     const winSound = document.getElementById("win-sound");
 
     const prizes = [
-    "100 ПТС", "180 ПТС", "15 ПТС", "10 ПТС",
+      "100 ПТС", "180 ПТС", "15 ПТС", "10 ПТС",
       "20 ПТС", "30 ПТС", "35 ПТС", "7 ПТС",
       "100 ПТС", "180 ПТС", "15 ПТС", "10 ПТС",
       "20 ПТС", "30 ПТС", "35 ПТС", "7 ПТС"
@@ -126,7 +108,14 @@
     let spinVelocity = 0;
     const spinDeceleration = 0.99;
 
-    const cooldownTime = /*7 * 24 * 60 */ 60 * 1000; // 7 дней
+    const cooldownTime = 60 * 1000; // 1 минута (поставьте 7*24*60*60*1000 для 7 дней)
+
+    function getQueryParam(param) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(param);
+    }
+
+    const userId = getQueryParam('user_id');
 
     function getLastSpin() {
       return localStorage.getItem("lastSpinTime");
@@ -237,24 +226,49 @@
       setLastSpin(Date.now());
 
       rotation = rotation % (2 * Math.PI);
-const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
-const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
+      const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
+      const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
 
-const prize = prizes[selectedIndex];
-winResult.textContent = `Вы выиграли: ${prize}`;
-winResult.style.color = colors[selectedIndex % colors.length];
-
+      const prize = prizes[selectedIndex];
+      winResult.textContent = `Вы выиграли: ${prize}`;
+      winResult.style.color = colors[selectedIndex % colors.length];
 
       winSound.currentTime = 0;
       winSound.play();
+
+      // Отправляем результат на сервер
+      if (!userId) {
+        console.warn("User ID не передан, результат не будет сохранён.");
+        return;
+      }
+
+      fetch('https://ваш_сервер/record_win', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          user_id: userId,
+          prize: prize,
+          date: new Date().toISOString()
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Результат отправлен на сервер:', data);
+      })
+      .catch(err => {
+        console.error('Ошибка отправки результата:', err);
+      });
     }
 
     spinBtn.addEventListener("click", spinWheel);
-    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      updateCooldown();
+    });
 
-    setInterval(updateCooldown, 1000);
-    updateCooldown();
     resizeCanvas();
+    updateCooldown();
+    setInterval(updateCooldown, 1000);
   </script>
 </body>
 </html>
