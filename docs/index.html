@@ -242,15 +242,16 @@
         return;
       }
 
-      fetch('https://liimonchell0.github.io/fortune-wheel/', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          user_id: userId,
-          prize: prize,
-          date: new Date().toISOString()
-        })
-      })
+      fetch('http://localhost:5000/record_win', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({
+    user_id: userId,
+    prize: prize,
+    date: new Date().toISOString()
+  })
+})
+
       .then(response => response.json())
       .then(data => {
         console.log('Результат отправлен на сервер:', data);
