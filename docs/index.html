@@ -222,28 +222,33 @@
     }
 
     function finishSpin() {
-      isSpinning = false;
-      setLastSpin(Date.now());
+  isSpinning = false;
+  setLastSpin(Date.now());
 
-      rotation = rotation % (2 * Math.PI);
-      const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
-      const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
+  rotation = rotation % (2 * Math.PI);
+  const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
+  const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
 
-      const prize = prizes[selectedIndex];
-      winResult.textContent = `Вы выиграли: ${prize}`;
-      winResult.style.color = colors[selectedIndex % colors.length];
+  const prize = prizes[selectedIndex];
+  winResult.textContent = `Вы выиграли: ${prize}`;
+  winResult.style.color = colors[selectedIndex % colors.length];
 
-      winSound.currentTime = 0;
-      winSound.play();
+  winSound.currentTime = 0;
+  winSound.play();
 
-      // Отправляем результат на сервер
-      if (!userId) {
-        console.warn("User ID не передан, результат не будет сохранён.");
-        return;
-      }
+  if (!userId) {
+    console.warn("User ID не передан, результат не будет сохранён.");
+    return;
+  }
 
-   
-    }
+  // Отправляем результат в бота Telegram
+  if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
+    Telegram.WebApp.sendData(JSON.stringify({ prize: prize }));
+  } else {
+    console.warn("Telegram WebApp API не доступен.");
+  }
+}
+
 
     spinBtn.addEventListener("click", spinWheel);
     window.addEventListener("resize", () => {
