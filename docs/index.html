@@ -252,6 +252,13 @@
     console.warn("Telegram WebApp API не доступен.");
   }
 }
+console.log("Отправляю выигрыш в бота:", prize);
+
+if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
+  Telegram.WebApp.sendData(JSON.stringify({ prize: prize }));
+} else {
+  console.warn("Telegram WebApp API не доступен.");
+}
 
 
     spinBtn.addEventListener("click", spinWheel);
