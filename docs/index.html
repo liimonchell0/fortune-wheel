@@ -230,11 +230,15 @@
   const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
 
   const prize = prizes[selectedIndex];
-  winResult.textContent = `Вы выиграли: ${prize}`;
-  winResult.style.color = colors[selectedIndex % colors.length];
 
   winSound.currentTime = 0;
   winSound.play();
+
+  
+
+  // Обновляем интерфейс в любом случае
+  winResult.textContent = `Вы выиграли: ${prize}`;
+  winResult.style.color = colors[selectedIndex % colors.length];
 
   if (!userId) {
     console.warn("User ID не передан, результат не будет сохранён.");
