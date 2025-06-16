@@ -258,20 +258,22 @@
       console.log(`Отправка выигрыша: ${prize} для пользователя ${effectiveUserId} (источник: ${userSource})`);
   
 // Отправка данных в бота
-     if (window.Telegram?.WebApp?.sendData) {
-        try {
-          Telegram.WebApp.sendData(JSON.stringify({
-            action: "save_win",
-            prize: prize,
-            user_id: effectiveUserId
-          }));
-          console.log("Данные отправлены через WebApp");
-        } catch (e) {
-          console.error("Ошибка отправки через WebApp:", e);
-          sendViaFetch(prize, effectiveUserId);
-        }
-      } 
+       if (window.Telegram?.WebApp?.sendData) {
+    try {
+      const data = {
+        action: "save_win",
+        prize: prize,
+        user_id: effectiveUserId,
+        source: "wheel",
+        time: new Date().toISOString()
+      };
+      
+      console.log("📤 Отправка через WebApp:", data);
+      Telegram.WebApp.sendData(JSON.stringify(data));
+    } catch (e) {
+      console.error("WebApp.sendData error:", e);
     }
+  }}
 
  
 
