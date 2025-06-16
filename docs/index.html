@@ -271,34 +271,7 @@
           sendViaFetch(prize, effectiveUserId);
         }
       } 
-      // Вариант 2: Fallback через fetch API
-      else {
-        sendViaFetch(prize, effectiveUserId);
-      }
     }
-
-    // Функция для отправки через fetch
-    function sendViaFetch(prize, userId) {
-      // Замените на реальный URL вашего бота
-      const BOT_WEBHOOK_URL = 'https://ваш-сервер.com/api/save_win';
-      
-      fetch(BOT_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: "save_win",
-          prize: prize,
-          user_id: userId
-        })
-      })
-      .then(response => {
-        if (!response.ok) throw new Error("Ошибка сети");
-        return response.json();
-      })
-      .then(data => console.log("Ответ сервера:", data))
-      .catch(error => console.error("Ошибка fetch:", error));
-    }
-
 
  
 
