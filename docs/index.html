@@ -238,6 +238,9 @@
 
   winSound.currentTime = 0;
   winSound.play();
+  
+  Telegram.WebApp.sendData(JSON.stringify({ prize: prize }));
+
   }
 
  
