@@ -239,9 +239,15 @@
   winSound.currentTime = 0;
   winSound.play();
   
-  Telegram.WebApp.sendData(JSON.stringify({ prize: prize }));
+// Отправка данных в бота
+    if (window.Telegram && window.Telegram.WebApp) {
+        Telegram.WebApp.sendData(JSON.stringify({
+            action: "save_win",
+            prize: prize,
+            user_id: userId
+        }));
 
-  }
+  }}
 
  
 
