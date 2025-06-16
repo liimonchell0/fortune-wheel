@@ -85,6 +85,13 @@
   <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
 
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.Telegram && window.Telegram.WebApp) {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+        console.log("Telegram WebApp инициализирован");
+      }
+    });
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const spinBtn = document.getElementById("spin-btn");
@@ -238,16 +245,60 @@
 
   winSound.currentTime = 0;
   winSound.play();
+
+  const userSource = userId ? "URL" : 
+                        (Telegram?.WebApp?.initDataUnsafe?.user?.id ? "WebApp" : null);
+      const effectiveUserId = userId || Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
+      if (!effectiveUserId) {
+        console.error("Не удалось определить user_id");
+        return;
+      }
+
+      console.log(`Отправка выигрыша: ${prize} для пользователя ${effectiveUserId} (источник: ${userSource})`);
   
 // Отправка данных в бота
-    if (window.Telegram && window.Telegram.WebApp) {
-        Telegram.WebApp.sendData(JSON.stringify({
+     if (window.Telegram?.WebApp?.sendData) {
+        try {
+          Telegram.WebApp.sendData(JSON.stringify({
             action: "save_win",
             prize: prize,
-            user_id: userId
-        }));
+            user_id: effectiveUserId
+          }));
+          console.log("Данные отправлены через WebApp");
+        } catch (e) {
+          console.error("Ошибка отправки через WebApp:", e);
+          sendViaFetch(prize, effectiveUserId);
+        }
+      } 
+      // Вариант 2: Fallback через fetch API
+      else {
+        sendViaFetch(prize, effectiveUserId);
+      }
+    }
 
-  }}
+    // Функция для отправки через fetch
+    function sendViaFetch(prize, userId) {
+      // Замените на реальный URL вашего бота
+      const BOT_WEBHOOK_URL = 'https://ваш-сервер.com/api/save_win';
+      
+      fetch(BOT_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: "save_win",
+          prize: prize,
+          user_id: userId
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Ошибка сети");
+        return response.json();
+      })
+      .then(data => console.log("Ответ сервера:", data))
+      .catch(error => console.error("Ошибка fetch:", error));
+    }
+
 
  
 
