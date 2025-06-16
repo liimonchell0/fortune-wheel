@@ -86,10 +86,13 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      if (window.Telegram && window.Telegram.WebApp) {
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
-        console.log("Telegram WebApp инициализирован");
+      if (window.Telegram && Telegram.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+  console.log("✅ Telegram WebApp готов");
+} else {
+  console.warn("⚠️ Telegram WebApp не определён");
+
       }
     });
     const canvas = document.getElementById("wheel");
@@ -239,6 +242,7 @@
   const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
   
   const prize = prizes[selectedIndex];
+  console.log("Выигран приз:", prize);
 
   winResult.textContent = `Вы выиграли: ${prize}`;
   winResult.style.color = colors[selectedIndex % colors.length];
@@ -267,7 +271,7 @@
         source: "wheel",
         time: new Date().toISOString()
       };
-      
+      console.log("Отправляемые данные:", JSON.stringify(data));
       console.log("📤 Отправка через WebApp:", data);
       Telegram.WebApp.sendData(JSON.stringify(data));
     } catch (e) {
