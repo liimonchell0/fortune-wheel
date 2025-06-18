@@ -85,6 +85,42 @@
   <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
 
   <script>
+
+// Проверка параметров из URL
+const urlParams = new URLSearchParams(window.location.search);
+
+if (urlParams.has('tgWebAppData') || !window.Telegram?.WebApp) {
+  // Создаем заглушку Telegram WebApp
+  window.Telegram = {
+    WebApp: {
+      initData: urlParams.toString(),
+      initDataUnsafe: {
+        user: {
+          id: parseInt(urlParams.get('user_id')) || 308437030,
+          first_name: urlParams.get('first_name') || 'Сергей',
+          last_name: urlParams.get('last_name') || 'Лапшевич',
+          is_premium: urlParams.has('is_premium')
+        }
+      },
+      sendData: function(data) {
+        console.log("Данные для бота:", JSON.parse(data));
+        alert("Тестовые данные:\n" + data);
+      },
+      ready: () => console.log("WebApp готов"),
+      expand: () => console.log("WebApp расширен")
+    }
+  };
+  
+  // Для кнопки "Назад" в интерфейсе
+  if (!urlParams.has('no_controls')) {
+    document.body.insertAdjacentHTML('afterbegin', `
+      <div style="position:fixed;top:0;left:0;background:#000;color:#fff;padding:10px;z-index:1000">
+        <button onclick="window.Telegram.WebApp.close()">Закрыть (имитация)</button>
+      </div>
+    `);
+  }
+}
+
     document.addEventListener('DOMContentLoaded', function() {
       if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.ready();
