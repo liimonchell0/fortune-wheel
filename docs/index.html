@@ -89,27 +89,6 @@
 // Проверка параметров из URL
 const urlParams = new URLSearchParams(window.location.search);
 
-if (urlParams.has('tgWebAppData') || !window.Telegram?.WebApp) {
-  // Создаем заглушку Telegram WebApp
-  window.Telegram = {
-    WebApp: {
-      initData: urlParams.toString(),
-      initDataUnsafe: {
-        user: {
-          id: parseInt(urlParams.get('user_id')) || 308437030,
-          first_name: urlParams.get('first_name') || 'Сергей',
-          last_name: urlParams.get('last_name') || 'Лапшевич',
-          is_premium: urlParams.has('is_premium')
-        }
-      },
-      sendData: function(data) {
-        console.log("Данные для бота:", JSON.parse(data));
-        alert("Тестовые данные:\n" + data);
-      },
-      ready: () => console.log("WebApp готов"),
-      expand: () => console.log("WebApp расширен")
-    }
-  };
   
   // Для кнопки "Назад" в интерфейсе
   if (!urlParams.has('no_controls')) {
@@ -119,7 +98,7 @@ if (urlParams.has('tgWebAppData') || !window.Telegram?.WebApp) {
       </div>
     `);
   }
-}
+
 
     document.addEventListener('DOMContentLoaded', function() {
       if (window.Telegram && Telegram.WebApp) {
@@ -330,3 +309,56 @@ if (urlParams.has('tgWebAppData') || !window.Telegram?.WebApp) {
   </script>
 </body>
 </html>
+INSERT INTO user_wins (id, user_id, win_date, prize)
+VALUES (
+    id:integer-- 2. Исправленный запрос для просмотра выигрышей
+SELECT 
+    u.first_name, 
+    u.last_name,
+    w.win_date,
+    w.prize
+FROM 
+    public.user_wins w
+JOIN 
+    public.users u ON w.user_id = u.user_id  -- Используем правильное имя столбца связи
+ORDER BY 
+    w.win_date DESC
+LIMIT 10;SELECT 
+    w.table_name AS wins_columns,
+    w.column_name, 
+    w.data_type
+FROM 
+    information_schema.columns w
+WHERE 
+    w.table_name = 'user_wins';-- 1. Сначала проверим структуру таблиц
+SELECT 
+    u.table_name AS users_columns,
+    u.column_name,
+    u.data_type
+FROM 
+    information_schema.columns u
+WHERE 
+    u.table_name = 'users';SELECT 
+    w.table_name AS wins_columns,
+    w.column_name, 
+    w.data_type
+FROM 
+    information_schema.columns w
+WHERE 
+    w.table_name = 'user_wins';-- 2. Исправленный запрос для просмотра выигрышей
+SELECT 
+    u.first_name, 
+    u.last_name,
+    w.win_date,
+    w.prize
+FROM 
+    public.user_wins w
+JOIN 
+    public.users u ON w.user_id = u.user_id  -- Используем правильное имя столбца связи
+ORDER BY 
+    w.win_date DESC
+LIMIT 10;,
+    'user_id:bigint',
+    'win_date:timestamp without time zone',
+    'prize:text'
+  );
