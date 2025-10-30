@@ -81,25 +81,12 @@
   <div id="win-result"></div>
   <div id="cooldown-timer"></div>
 
-
-
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      if (window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
-        console.log("✅ Telegram WebApp готов");
-      } else {
-        console.warn("⚠️ Telegram WebApp не определён");
-      }
-    });
-
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const spinBtn = document.getElementById("spin-btn");
     const winResult = document.getElementById("win-result");
     const cooldownTimer = document.getElementById("cooldown-timer");
-  
 
     const prizes = [
       "100 PTS", "180 PTS", "15 PTS", "10 PTS",
@@ -115,7 +102,7 @@
     let isSpinning = false;
     let spinVelocity = 0;
     const spinDeceleration = 0.99;
-    const cooldownTime = 60 * 1000; // 1 минута
+    const cooldownTime = 60 * 1000;
 
     function getLastSpin() {
       return localStorage.getItem("lastSpinTime");
@@ -228,12 +215,10 @@
       const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
       
       const prize = prizes[selectedIndex];
-      console.log("🎯 Выигран приз:", prize);
+      console.log("Выигран приз:", prize);
 
       winResult.textContent = `Вы выиграли: ${prize}`;
       winResult.style.color = colors[selectedIndex % colors.length];
-
-    
 
       // Отправка данных в бота
       setTimeout(() => {
@@ -251,7 +236,6 @@
           }, 3000);
         } else {
           console.log("💻 Тестовый режим - приз:", prize);
-          alert(`🎉 Вы выиграли: ${prize} (тестовый режим)`);
         }
       }, 2000);
     }
