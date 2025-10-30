@@ -223,51 +223,53 @@
       requestAnimationFrame(animateSpin);
     }
 
-   function finishSpin() {
-  isSpinning = false;
-  setLastSpin(Date.now());
+    function finishSpin() {
+      isSpinning = false;
+      setLastSpin(Date.now());
 
-  rotation = rotation % (2 * Math.PI);
-  const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
-  const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
-  
-  const prize = prizes[selectedIndex];
-  console.log("🎯 Выигран приз:", prize);
-
-  winResult.textContent = `Вы выиграли: ${prize}`;
-  winResult.style.color = colors[selectedIndex % colors.length];
-
-  winSound.currentTime = 0;
-  winSound.play();
-
-  // ОТЛАДКА
-  console.log("🔍 Проверка Telegram WebApp:");
-  console.log("Telegram available:", !!window.Telegram);
-  console.log("WebApp available:", !!window.Telegram?.WebApp);
-  console.log("sendData available:", !!window.Telegram?.WebApp?.sendData);
-  console.log("User data:", Telegram?.WebApp?.initDataUnsafe?.user);
-
-  // Отправка данных в бота
-  setTimeout(() => {
-    if (window.Telegram?.WebApp?.sendData) {
-      const data = {
-        action: "save_win",
-        prize: prize
-      };
-      console.log("📤 Отправка данных в бота:", data);
+      rotation = rotation % (2 * Math.PI);
+      const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
+      const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
       
-      try {
-        Telegram.WebApp.sendData(JSON.stringify(data));
-        console.log("✅ Данные отправлены успешно");
-      } catch (e) {
-        console.error("❌ Ошибка отправки:", e);
-      }
-    } else {
-      console.log("💻 Тестовый режим - данные не отправлены");
-      console.log("Приз:", prize);
+      const prize = prizes[selectedIndex];
+      console.log("🎯 Выигран приз:", prize);
+
+      winResult.textContent = `Вы выиграли: ${prize}`;
+      winResult.style.color = colors[selectedIndex % colors.length];
+
+      winSound.currentTime = 0;
+      winSound.play();
+
+      // Отправка данных в бота
+      setTimeout(() => {
+        if (window.Telegram?.WebApp?.sendData) {
+          const data = {
+            action: "save_win",
+            prize: prize
+          };
+          console.log("📤 Отправка данных в бота:", data);
+          Telegram.WebApp.sendData(JSON.stringify(data));
+          
+          // Закрываем WebApp через 3 секунды
+          setTimeout(() => {
+            Telegram.WebApp.close();
+          }, 3000);
+        } else {
+          console.log("💻 Тестовый режим - приз:", prize);
+          alert(`🎉 Вы выиграли: ${prize} (тестовый режим)`);
+        }
+      }, 2000);
     }
-  }, 2000);
-}
+
+    spinBtn.addEventListener("click", spinWheel);
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      updateCooldown();
+    });
+
+    resizeCanvas();
+    updateCooldown();
+    setInterval(updateCooldown, 1000);
   </script>
 </body>
 </html>
