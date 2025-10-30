@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+    // УЛЬТРА-ПРОСТОЙ ТЕСТ
+    console.log("🔄 Script started");
+    console.log("Telegram:", window.Telegram);
+    console.log("WebApp:", window.Telegram?.WebApp);
+    
+    if (window.Telegram?.WebApp) {
+        console.log("✅ WebApp доступен!");
+        document.body.innerHTML = '<h1 style="color:green;padding:50px;text-align:center;">✅ WEBAPP РАБОТАЕТ!</h1>';
+        
+        // Отправляем тестовые данные
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+        
+        setTimeout(() => {
+            Telegram.WebApp.sendData(JSON.stringify({
+                action: "save_win",
+                prize: "SIMPLE TEST 100 PTS"
+            }));
+            console.log("📤 Данные отправлены");
+        }, 1000);
+        
+    } else {
+        console.log("❌ WebApp не доступен");
+        document.body.innerHTML = '<h1 style="color:red;padding:50px;text-align:center;">❌ WEBAPP НЕ ДОСТУПЕН</h1>';
+    }
+</script>
+</body>
+</html>
