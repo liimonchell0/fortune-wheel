@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain Test</title>
+</head>
+<body style="text-align: center; padding: 50px;">
+    <h1>🔗 Domain Test</h1>
+    
+    <div id="status" style="margin: 20px; padding: 20px; border: 2px solid #ccc;">
+        Проверка...
+    </div>
+
+    <script>
+        // Проверяем доступность WebApp
+        const status = document.getElementById('status');
+        
+        if (window.Telegram && Telegram.WebApp) {
+            status.innerHTML = `
+                <h2 style="color: green;">✅ WebApp ДОСТУПЕН!</h2>
+                <p>User ID: ${Telegram.WebApp.initDataUnsafe?.user?.id || 'Не определен'}</p>
+                <p>Platform: ${Telegram.WebApp.platform}</p>
+            `;
+            
+            // Отправляем тестовые данные
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            
+            setTimeout(() => {
+                const testData = {
+                    action: "save_win",
+                    prize: "DOMAIN TEST 100 PTS"
+                };
+                Telegram.WebApp.sendData(JSON.stringify(testData));
+                status.innerHTML += `<p style="color: green;">📤 Данные отправлены!</p>`;
+            }, 1000);
+            
+        } else {
+            status.innerHTML = `
+                <h2 style="color: red;">❌ WebApp НЕ ДОСТУПЕН</h2>
+                <p>Проверьте настройки домена в @BotFather</p>
+                <p>Domain: liimonchell0.github.io</p>
+            `;
+        }
+    </script>
+</body>
+</html>
