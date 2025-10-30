@@ -99,7 +99,7 @@
     const spinBtn = document.getElementById("spin-btn");
     const winResult = document.getElementById("win-result");
     const cooldownTimer = document.getElementById("cooldown-timer");
-    const winSound = document.getElementById("win-sound");
+  
 
     const prizes = [
       "100 PTS", "180 PTS", "15 PTS", "10 PTS",
@@ -233,8 +233,7 @@
       winResult.textContent = `Вы выиграли: ${prize}`;
       winResult.style.color = colors[selectedIndex % colors.length];
 
-      winSound.currentTime = 0;
-      winSound.play();
+    
 
       // Отправка данных в бота
       setTimeout(() => {
