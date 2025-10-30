@@ -85,31 +85,16 @@
   <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
 
   <script>
-
-// Проверка параметров из URL
-const urlParams = new URLSearchParams(window.location.search);
-
-  
-  // Для кнопки "Назад" в интерфейсе
-  if (!urlParams.has('no_controls')) {
-    document.body.insertAdjacentHTML('afterbegin', `
-      <div style="position:fixed;top:0;left:0;background:#000;color:#fff;padding:10px;z-index:1000">
-        <button onclick="window.Telegram.WebApp.close()">Закрыть (имитация)</button>
-      </div>
-    `);
-  }
-
-
     document.addEventListener('DOMContentLoaded', function() {
       if (window.Telegram && Telegram.WebApp) {
-  Telegram.WebApp.ready();
-  Telegram.WebApp.expand();
-  console.log("✅ Telegram WebApp готов");
-} else {
-  console.warn("⚠️ Telegram WebApp не определён");
-
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+        console.log("✅ Telegram WebApp готов");
+      } else {
+        console.warn("⚠️ Telegram WebApp не определён");
       }
     });
+
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const spinBtn = document.getElementById("spin-btn");
@@ -117,8 +102,6 @@ const urlParams = new URLSearchParams(window.location.search);
     const cooldownTimer = document.getElementById("cooldown-timer");
     const spinSound = document.getElementById("spin-sound");
     const winSound = document.getElementById("win-sound");
-  
-
 
     const prizes = [
       "100 ПТС", "180 ПТС", "15 ПТС", "10 ПТС",
@@ -134,15 +117,7 @@ const urlParams = new URLSearchParams(window.location.search);
     let isSpinning = false;
     let spinVelocity = 0;
     const spinDeceleration = 0.99;
-
-    const cooldownTime = 60 * 1000; // 1 минута (поставьте 7*24*60*60*1000 для 7 дней)
-
-    function getQueryParam(param) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(param);
-    }
-
-    const userId = getQueryParam('user_id');
+    const cooldownTime = 60 * 1000; // 1 минута
 
     function getLastSpin() {
       return localStorage.getItem("lastSpinTime");
@@ -249,53 +224,42 @@ const urlParams = new URLSearchParams(window.location.search);
     }
 
     function finishSpin() {
-  isSpinning = false;
-  setLastSpin(Date.now());
+      isSpinning = false;
+      setLastSpin(Date.now());
 
-  rotation = rotation % (2 * Math.PI);
-  const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
-  const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
-  
-  const prize = prizes[selectedIndex];
-  console.log("Выигран приз:", prize);
+      rotation = rotation % (2 * Math.PI);
+      const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
+      const selectedIndex = Math.floor(pointerAngle / anglePerSector) % numSectors;
+      
+      const prize = prizes[selectedIndex];
+      console.log("🎯 Выигран приз:", prize);
 
-  winResult.textContent = `Вы выиграли: ${prize}`;
-  winResult.style.color = colors[selectedIndex % colors.length];
+      winResult.textContent = `Вы выиграли: ${prize}`;
+      winResult.style.color = colors[selectedIndex % colors.length];
 
-  winSound.currentTime = 0;
-  winSound.play();
+      winSound.currentTime = 0;
+      winSound.play();
 
-  const userSource = userId ? "URL" : 
-                        (Telegram?.WebApp?.initDataUnsafe?.user?.id ? "WebApp" : null);
-      const effectiveUserId = userId || Telegram?.WebApp?.initDataUnsafe?.user?.id;
-
-      if (!effectiveUserId) {
-        console.error("Не удалось определить user_id");
-        return;
-      }
-
-      console.log(`Отправка выигрыша: ${prize} для пользователя ${effectiveUserId} (источник: ${userSource})`);
-  
-// Отправка данных в бота
-       if (window.Telegram?.WebApp?.sendData) {
-    try {
-      const data = {
-        action: "save_win",
-        prize: prize,
-        user_id: effectiveUserId,
-        source: "wheel",
-        time: new Date().toISOString()
-      };
-      console.log("Отправляемые данные:", JSON.stringify(data));
-      console.log("📤 Отправка через WebApp:", data);
-      Telegram.WebApp.sendData(JSON.stringify(data));
-    } catch (e) {
-      console.error("WebApp.sendData error:", e);
+      // Отправка данных в бота
+      setTimeout(() => {
+        if (window.Telegram?.WebApp?.sendData) {
+          const data = {
+            action: "save_win",
+            prize: prize
+          };
+          console.log("📤 Отправка данных в бота:", data);
+          Telegram.WebApp.sendData(JSON.stringify(data));
+          
+          // Закрываем WebApp через 3 секунды
+          setTimeout(() => {
+            Telegram.WebApp.close();
+          }, 3000);
+        } else {
+          console.log("💻 Тестовый режим - приз:", prize);
+          alert(`🎉 Вы выиграли: ${prize} (тестовый режим)`);
+        }
+      }, 2000);
     }
-  }}
-
- 
-
 
     spinBtn.addEventListener("click", spinWheel);
     window.addEventListener("resize", () => {
@@ -309,56 +273,3 @@ const urlParams = new URLSearchParams(window.location.search);
   </script>
 </body>
 </html>
-INSERT INTO user_wins (id, user_id, win_date, prize)
-VALUES (
-    id:integer-- 2. Исправленный запрос для просмотра выигрышей
-SELECT 
-    u.first_name, 
-    u.last_name,
-    w.win_date,
-    w.prize
-FROM 
-    public.user_wins w
-JOIN 
-    public.users u ON w.user_id = u.user_id  -- Используем правильное имя столбца связи
-ORDER BY 
-    w.win_date DESC
-LIMIT 10;SELECT 
-    w.table_name AS wins_columns,
-    w.column_name, 
-    w.data_type
-FROM 
-    information_schema.columns w
-WHERE 
-    w.table_name = 'user_wins';-- 1. Сначала проверим структуру таблиц
-SELECT 
-    u.table_name AS users_columns,
-    u.column_name,
-    u.data_type
-FROM 
-    information_schema.columns u
-WHERE 
-    u.table_name = 'users';SELECT 
-    w.table_name AS wins_columns,
-    w.column_name, 
-    w.data_type
-FROM 
-    information_schema.columns w
-WHERE 
-    w.table_name = 'user_wins';-- 2. Исправленный запрос для просмотра выигрышей
-SELECT 
-    u.first_name, 
-    u.last_name,
-    w.win_date,
-    w.prize
-FROM 
-    public.user_wins w
-JOIN 
-    public.users u ON w.user_id = u.user_id  -- Используем правильное имя столбца связи
-ORDER BY 
-    w.win_date DESC
-LIMIT 10;,
-    'user_id:bigint',
-    'win_date:timestamp without time zone',
-    'prize:text'
-  );
