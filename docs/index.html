@@ -99,7 +99,6 @@
     const spinBtn = document.getElementById("spin-btn");
     const winResult = document.getElementById("win-result");
     const cooldownTimer = document.getElementById("cooldown-timer");
-    const spinSound = document.getElementById("spin-sound");
     const winSound = document.getElementById("win-sound");
 
     const prizes = [
@@ -205,8 +204,6 @@
       if (isSpinning || !canSpin()) return;
       isSpinning = true;
       spinBtn.disabled = true;
-      spinSound.currentTime = 0;
-      spinSound.play();
       spinVelocity = 0.1 + Math.random() * 0.1;
       animateSpin();
     }
